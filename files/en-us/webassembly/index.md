@@ -38,13 +38,19 @@ And what's even better is that it is being developed as a web standard via the [
   - : This article explains the wasm text format. This is the low-level textual representation of a .wasm module shown in browser developer tools when debugging.
 - [Converting WebAssembly text format to wasm](/en-US/docs/WebAssembly/Text_format_to_wasm)
   - : This article provides a guide on how to convert a WebAssembly module written in the text format into a .wasm binary.
+- [WebAssembly exception handling](/en-US/docs/WebAssembly/Exceptions)
+  - : This article provides a guide on exception handling in WebAssembly code and across WebAssembly boundaries.
 
-## API reference
+## WASM API reference
 
 - [WebAssembly control flow](/en-US/docs/WebAssembly/Reference/Control_flow)
   - : Reference documentation for the set of WebAssembly control-flow operators.
+
+## JavaScript WebAssembly API reference
+
+
 - {{jsxref("Global_objects/WebAssembly", "WebAssembly")}}
-  - : This object acts as the namespace for all WebAssembly related functionality.
+  - : This object acts as the namespace for all JavaScript WebAssembly related functionality.
 - {{jsxref("Global_objects/WebAssembly/Global", "WebAssembly.Global()")}}
   - : A `WebAssembly.Global` object represents a global variable instance, accessible from both JavaScript and importable/exportable across one or more {{jsxref("WebAssembly.Module")}} instances. This allows dynamic linking of multiple modules.
 - {{jsxref("Global_objects/WebAssembly/Module", "WebAssembly.Module()")}}
@@ -63,6 +69,11 @@ And what's even better is that it is being developed as a web standard via the [
   - : Creates a new WebAssembly `LinkError` object.
 - {{jsxref("WebAssembly.RuntimeError()")}}
   - : Creates a new WebAssembly `RuntimeError` object.
+- {{jsxref("WebAssembly.Tag()")}}
+  - : An object that represents a type of WebAssembly exception.
+- {{jsxref("WebAssembly.Exception()")}}
+  - : An exception object that can be thrown, caught, and rethrown both within and across WebAssembly/JavaScript boundaries.
+
 
 ## Examples
 

@@ -45,7 +45,7 @@ The primary uses for the `WebAssembly` object are:
 - [`WebAssembly.Tag()`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Tag/Tag)
   - : An object that represents a type of WebAssembly exception.
 - [`WebAssembly.Exception()`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly/Exception/Exception)
-  - : A WebAssembly exception object that can be thrown, caught, and rethrown both within and across WebAssembly/JavaScript boundaries.
+  - : An exception object that can be thrown, caught, and rethrown both within and across WebAssembly/JavaScript boundaries.
 
 ## Static methods
 
