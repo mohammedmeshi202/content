@@ -348,6 +348,382 @@ new Intl.NumberFormat('bn', {
 // → '($3,500.00)'
 ```
 
+### FractionDigits, SignificantDigits and IntegerDigits
+
+The `NumberFormat() constructor` can be used to specify the minimum or maximum number of fractional, integer or significant digits to display when formatting a number.
+
+> **Note:** If both significant and fractional digit limits are specified then formatting depends on the [`roundingPriority`](#roundingpriority).
+
+#### Using FractionDigits and IntegerDigits
+
+The integer and fraction digit properties indicate the number of digits to display before and after the decimal point, respectively.
+If the value to display has fewer integer digits than specified it will be zero prefixed to the expected number.
+If it has fewer fractional digits it will be zero suffixed.
+Both cases are shown below:
+
+```js
+// Formatting adds zeros to display minimum integers and fractions
+console.log(new Intl.NumberFormat("en", 
+  {minimumIntegerDigits: 3, minimumFractionDigits: 4}
+  ).format(4.33));
+// > "004.3300"
+```
+
+If a value has more fractional digits than set for the maximum number of fraction digits it will be rounded.
+The _way_ that it is rounded depends on the [`roundingMode`](#roundingmode) property (more details are provided in the next section).
+Below the value is rounded from five fractional digits (`4.33145`) to two (`4.33`):
+
+```js
+// Display value shortened to maximum number of digits
+console.log(new Intl.NumberFormat("en", {maximumFractionDigits: 2}).format(4.33145));
+// > "4.33"
+```
+
+The minimum factional digits have no effect if the value already has more than 2 fractional digits, as shown below.
+
+```js
+// Minimum fractions have no effect if value is higher precision.
+console.log(new Intl.NumberFormat("en", {minimumFractionDigits: 2}).format(4.33145));
+// > "4.331"
+```
+
+> **Warning:** Watch out for default values as they may affect formatting even if not specified in your code.
+> The default default maximum digit value is three for plain values, two for currency, and may have different values for other predefined types.
+
+The formatted value above is rounded to 3 digits, even though we didn't specify the maximum digits!
+This is because a default value of `maximumFractionDigits` is set when we specify `minimumFractionDigits`, and visa versa.
+
+This is demonstrated below, using [`resolvedOptions()`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/resolvedOptions) to inspect the formatter.
+Note that when either `maximumFractionDigits` or `minimumFractionDigits` is defined, so is its counterpart.
+Also note the default values of `maximumFractionDigits: 3` and `minimumFractionDigits: 0`.
+
+```js
+console.log(new Intl.NumberFormat("en", {maximumFractionDigits: 2}).resolvedOptions());
+// > Object { locale: "en", numberingSystem: "latn", style: "decimal", minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2, useGrouping: "auto", notation: "standard", signDisplay: "auto", roundingMode: "halfExpand", roundingIncrement: 1, trailingZeroDisplay: "auto", roundingPriority: "auto" }
+
+console.log(new Intl.NumberFormat("en", {minimumFractionDigits: 2}).resolvedOptions());
+// > Object { locale: "en", numberingSystem: "latn", style: "decimal", minimumIntegerDigits: 1, minimumFractionDigits: 2, maximumFractionDigits: 3, useGrouping: "auto", notation: "standard", signDisplay: "auto", roundingMode: "halfExpand", roundingIncrement: 1, trailingZeroDisplay: "auto", roundingPriority: "auto" }
+```
+
+#### Using SignificantDigits
+
+The number of _significant digits_ is the total number of digits including both integer and factional parts.
+The `maximumSignificantDigits` is used to indicate the total number of digits from the original value to display.
+
+The examples below show how this works.
+Note in particular the last case: only the first digit is retained and the others are discarded/set to zero.
+
+```js
+// Display 5 significant digits
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 5}).format(54.33145));
+// > "54.331"
+
+// Max 2 significant digits
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2}).format(54.33145));
+// > "54"
+
+// Max 1 significant digits
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 1}).format(54.33145));
+// > "50"
+```
+
+The `minimumSignificantDigits` ensures that at least the minimum number of digits are displayed, adding zeros to the end of the value if needed.
+
+```js
+// Minimum 10 significant digits
+console.log(new Intl.NumberFormat("en", {minimumSignificantDigits: 10}).format(54.33145));
+// > "54.33145000"
+```
+
+> **Warning:** Watch out for default values as they may affect formatting even if not specified in your code.
+> The default default maximum and minimum significant digit values are 20 and 1, respectively.
+
+#### Specifying significant and fractional digits at the same time
+
+The fraction digits ([`minimumFractionDigits`](#minimumfractiondigits)/[`maximumFractionDigits`](#maximumfractiondigits)) and significant digits ([`minimumSignificantDigits`](#minimumsignificantdigits)/[`maximumSignificantDigits`](#minimumsignificantdigits)) are both ways of controlling how many fractional and leading digits should be formatted.
+If both are used at the same time, it is possible for them to conflict.
+
+These conflicts are resolved using the [`roundingPriority`](#roundingpriority) property.
+By default this has a value of `auto`, which means that if either [`minimumSignificantDigits`](#minimumsignificantdigits) or [`maximumSignificantDigits`](#minimumsignificantdigits) is specified the fractional and integer digit properties will be ignored.
+
+For example, the code below formats the value of `4.33145` with `maximumFractionDigits: 3`, and then `maximumSignificantDigits: 2`, and then both.
+The value with both is the one set with `maximumSignificantDigits`.
+
+```js
+console.log(new Intl.NumberFormat("en", {maximumFractionDigits: 3}).format(4.33145));
+// > "4.331"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2}).format(4.33145));
+// > "4.3"
+console.log(new Intl.NumberFormat("en", {maximumFractionDigits: 3, maximumSignificantDigits: 2}).format(4.33145));
+// > "4.3"
+```
+
+Using [`resolvedOptions()`](/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/resolvedOptions) to inspect the formatter we can see that the returned object does not include `maximumFractionDigits` when `maximumSignificantDigits` or `minimumSignificantDigits` are specified.
+
+```js
+console.log(new Intl.NumberFormat("en", {maximumFractionDigits: 3, maximumSignificantDigits: 2}).resolvedOptions());
+// > Object { locale: "en", numberingSystem: "latn", style: "decimal", minimumIntegerDigits: 1, minimumSignificantDigits: 1, maximumSignificantDigits: 2, useGrouping: "auto", notation: "standard", signDisplay: "auto", roundingMode: "halfExpand", roundingIncrement: 1, trailingZeroDisplay: "auto", roundingPriority: "auto" }
+console.log(new Intl.NumberFormat("en", {maximumFractionDigits: 3, minimumSignificantDigits: 2}).resolvedOptions());
+// > Object { locale: "en", numberingSystem: "latn", style: "decimal", minimumIntegerDigits: 1, minimumSignificantDigits: 2, maximumSignificantDigits: 21, useGrouping: "auto", notation: "standard", signDisplay: "auto", roundingMode: "halfExpand", roundingIncrement: 1, trailingZeroDisplay: "auto", roundingPriority: "auto" }
+```
+
+In addition to `auto` you can resolve conflicts by specifying [`roundingPriority`](#roundingpriority) as `morePrecision` or `lessPrecision`.
+The formatter calculates the precision using the values of `maximumSignificantDigits` and `maximumFractionDigits`.
+
+The code below shows the format being selected for the three different rounding priorities:
+
+```js
+const maxFracNF = new Intl.NumberFormat("en", {maximumFractionDigits: 3} )
+console.log(`maximumFractionDigits:3 - ${maxFracNF.format(1.23456)}`);
+// > "maximumFractionDigits:2 - 1.235"
+
+const maxSigNS = new Intl.NumberFormat("en", {maximumSignificantDigits: 3} )
+console.log(`maximumSignificantDigits:3 - ${maxSigNS.format(1.23456)}`);
+// > "maximumSignificantDigits:3 - 1.23"
+
+const both_auto = new Intl.NumberFormat("en", {maximumSignificantDigits: 3, maximumFractionDigits: 3} )
+console.log(`auto - ${both_auto.format(1.23456)}`);
+// > "auto - 1.23"
+
+const both_less = new Intl.NumberFormat("en", {roundingPriority: 'lessPrecision', maximumSignificantDigits: 3, maximumFractionDigits: 3} )
+console.log(`lessPrecision - ${both_less.format(1.23456)}`);
+// > "lessPrecision - 1.23"
+
+const both_more = new Intl.NumberFormat("en", {roundingPriority: 'morePrecision', maximumSignificantDigits: 3, maximumFractionDigits: 3} )
+console.log(`morePrecision - ${both_more.format(1.23456)}`);
+// > "morePrecision - 1.235"
+```
+
+Note that the algorithm can behave in an unintuitive way if a minimum value is specified without a maximum value.
+The example below formats the value `1` specifying `minimumFractionDigits: 2` (formatting to `1.00`) and  `minimumSignificantDigits: 2` (formatting to `1.0`).
+Since `1.00` has more digits than `1.0` this would be the result of the `morePrecision` test, but in fact the opposite is true:
+
+```js
+const both_less = new Intl.NumberFormat("en", {roundingPriority: 'lessPrecision', minimumFractionDigits: 2, minimumSignificantDigits: 2} )
+console.log(`lessPrecision - ${both_less.format(1)}`);
+// > "lessPrecision - 1.00"
+
+const both_more = new Intl.NumberFormat("en", {roundingPriority: 'morePrecision', minimumFractionDigits: 2, minimumSignificantDigits: 2} )
+console.log(`morePrecision - ${both_more.format(1)}`);
+// > "morePrecision - 1.0"
+```
+
+The reason for this is that only the "maximum precision" values are used for the calculation, and the default value of `maximumSignificantDigits` is much higher than `maximumFractionDigits`.
+
+> **Note:** The working group have proposed a modification of the algorithm where the formatter should evaluate the result of using the specified fractional and significant digits independently (taking account of both minimum and maximum values).
+> It will then select the option that displays more fractional digits if  `morePrecision` is set, and fewer if `lessPrecision` is set.
+> This will result in more intuitive behavior for this case.
+
+### Rounding and truncating
+
+If a value has more fractional digits than are allowed by the constructor options, then the formatted value will be _rounded_ to the specified number of fractional digits.
+The _way_ in which the value is rounded depends on the [`roundingMode`](#roundingmode) property.
+
+#### Default rounding (halfExpand)
+
+Number formatters use `halfExpand` rounding by default, which rounds values "away from zero" at the half-increment (in other words, the _magnitude_ of the value is rounded up).
+
+For a positive number, if the fractional digits to be removed are closer to the next increment (or on the half way point) then the remaining fractional digits will be rounded up, otherwise they are rounded down.
+This is shown below: 2.31 rounded to two significant digits is truncated to 2.3 because 2.31 is less than the half increment 2.35, while values of 2.35 and greater are rounded up to 2.4:
+
+```js
+// Value below half way point: round down.
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2}).format(2.31));
+// > "2.3"
+
+// Value on or above half way point: round up.
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2}).format(2.35));
+// > "2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2}).format(2.39));
+// > "2.4"
+```
+
+A negative number on or below the half-increment point is also rounded away from zero (becomes more negative).
+This is shown be the code below:
+
+```js
+// Value below half way point: round down.
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2}).format(-2.31));
+// > "-2.3"
+
+// Value on or above half way point: round up.
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2}).format(-2.35));
+// > "-2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2}).format(-2.39));
+// > "-2.4"
+```
+
+#### expand and trunc rounding
+
+`expand` mode round away from zero for any non-zero value of the fractional digits to be discarded.
+This means that the _magnitude_ of the value is always increased by rounding, making a positive number more positive, and a negative number more negative.
+`trunc` rounding modes is the opposite; it rounds towards zero, reducing the magnitude of the displayed value. round away from zero and towards zero, respectively, 
+
+The code below shows the different rounding behavior for each case:
+
+```js
+// 'expand' mode rounds away from zero
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "expand"}).format(2.33));
+// > "2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "expand"}).format(2.39));
+// > "2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "expand"}).format(-2.33));
+// > "-2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "expand"}).format(-2.39));
+// > "-2.4"
+
+// 'trunc' mode rounds towards zero  - truncates
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "trunc"}).format(2.33));
+// > "2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "trunc"}).format(2.39));
+// > "2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "trunc"}).format(-2.33));
+// > "-2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "trunc"}).format(-2.39));
+// > "-2.3"
+```
+
+#### ceil and floor rounding
+
+`ceil` rounding always rounds the value "more positive" for any non-zero value of the fractional digits to be discarded.
+`floor` rounding is the opposite; it rounds "more negative"
+For positive numbers `ceil` and `expand` have the same result, as do `floor` and `trunc`.
+For negative numbers rounding is different.
+
+The code below shows the different rounding behavior for each case:
+
+```js
+// 'ceil' mode rounds towards positive infinity
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "ceil"}).format(2.33));
+// > "2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "ceil"}).format(2.39));
+// > "2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "ceil"}).format(-2.33));
+// > "-2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "ceil"}).format(-2.39));
+// > "-2.3"
+
+// 'floor' mode rounds towards negative infinity
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "floor"}).format(2.33));
+// > "2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "floor"}).format(2.39));
+// > "2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "floor"}).format(-2.33));
+// > "-2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "floor"}).format(-2.39));
+// > "-2.4"
+```
+
+#### halfExpand halfTrunc rounding
+
+`halfExpand` and `halfTrunc` are similar.
+In both cases values above the half-increment are rounded by expanded away from zero, and values below the half-increment are truncated towards zero.
+The only difference is that for values _on_ the half way increment they follow the rounding implied by their names: `halfTrunc` rounds towards zero, while `halfExpand` rounds away from zero.
+
+This is demonstrated by the following code:
+
+```js
+// Value with fractional digits below the half increment round towards zero
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfTrunc"}).format(2.31));
+// > "2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfExpand"}).format(2.31));
+// > "2.3"
+
+// Values with fractional digits ON the half increment
+// - round away from zero for halfExpand
+// - round towards zero for halfTrunc 
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfTrunc"}).format(2.35));
+// > "2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfExpand"}).format(2.35));
+// > "2.4"
+
+//Value with fractional digits above the half increment round away from zero
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfTrunc"}).format(2.37));
+// > "2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfExpand"}).format(2.37));
+// > "2.4"
+```
+
+The same pattern applies for negative numbers.
+
+```js
+// Value with fractional digits below the half increment round towards zero
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfTrunc"}).format(-2.31));
+// > "-2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfExpand"}).format(-2.31));
+// > "-2.3"
+
+// Values with fractional digits ON the half increment
+// - round away from zero for halfExpand
+// - round towards zero for halfTrunc 
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfTrunc"}).format(-2.35));
+// > "-2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfExpand"}).format(-2.35));
+// > "-2.4"
+
+// Value with fractional digits below the half increment round away from zero
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfTrunc"}).format(-2.37));
+// > "-2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfTrunc"}).format(-2.37));
+// > "-2.4"
+```
+
+#### halfCeil and halfFloor rounding
+
+`halfCeil` and `halfFloor` are similar to `halfExpand` and `halfTrunc`, but follow `ceil` and `floor` rounding.
+In both cases values above the half-increment are rounded to be more positive, and values below the half-increment are rounded more negative.
+Values _on_ the half way increment follow the rounding implied by their names: `halfCeil` rounds more positive, while `halfFloor` rounds more negative.
+
+```js
+// Value with fractional digits below the half increment round towards zero
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfFloor"}).format(2.31));
+// > "2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfCeil"}).format(2.31));
+// > "2.3"
+
+// Values with fractional digits ON the half increment
+// - round away from zero for halfExpand
+// - round towards zero for halfTrunc 
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfFloor"}).format(2.35));
+// > "2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfCeil"}).format(2.35));
+// > "2.4"
+
+// Value with fractional digits above the half increment round more positive
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfFloor"}).format(2.37));
+// > "2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfCeil"}).format(2.37));
+// > "2.4"
+```
+
+Negative values follow the same patterns:
+
+```js
+// Value with fractional digits below the half increment round more negative
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfFloor"}).format(-2.31));
+// > "-2.3"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfCeil"}).format(-2.31));
+// > "-2.3"
+
+// Values with fractional digits ON the half increment
+// - round more positive for halfCeil
+// - round more negative for halfFloor
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfFloor"}).format(-2.35));
+// > "-2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfCeil"}).format(-2.35));
+// > "-2.3"
+
+// Value with fractional digits above the half increment round more positive
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfFloor"}).format(-2.37));
+// > "-2.4"
+console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMode: "halfCeil"}).format(-2.37));
+// > "-2.4"
+```
+
+<!-- 
+#### halfEven - ties toward the value with even cardinality.
+-->
+
 ## Specifications
 
 {{Specifications}}
