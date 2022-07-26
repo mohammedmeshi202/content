@@ -724,6 +724,68 @@ console.log(new Intl.NumberFormat("en", {maximumSignificantDigits: 2, roundingMo
 #### halfEven - ties toward the value with even cardinality.
 -->
 
+### Using roundingIncrement
+
+Sometimes we want to round the remaining fractional digits to some other increment than the next integer.
+For example, currencies for which the smallest coin is 5 cents might want to round the value to increments of "5", reflecting amounts that can actually be paid in cash.
+
+This kind of rounding can be achieved with the [roundingIncrement](#roundingincrement) property.
+
+For example, if `maximumFractionDigits` is 2 and `roundingIncrement` is 5, then the number is rounded to the nearest 0.05:
+
+```js
+const nf = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 2,
+  roundingIncrement: 5
+});
+
+console.log(nf.format(11.29));  // > output: "$11.30"
+console.log(nf.format(11.25));  // > output: "$11.25"
+console.log(nf.format(11.22));  // > output: "$11.20"
+```
+
+This particular pattern is referred to as "nickel rounding", where nickel is the colloquial name for a USA 5 cent coin.
+To round to the nearest 10 cents ("dime rounding") you could just change `roundingIncrement` to `10`.
+
+```js
+const nf = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 2,
+  roundingIncrement: 5
+});
+
+console.log(nf.format(11.29));  // > output: "$11.30"
+console.log(nf.format(11.25));  // > output: "$11.25"
+console.log(nf.format(11.22));  // > output: "$11.20"
+```
+
+You can also use [`roundingMode`](#roundingmode) to change the rounding algorithm.
+The example below shows how [`halfCeil`](#halfceil_and_halffloor_rounding) rounding can be used to round the value "less positive" below the half-rounding increment and "more positive" if above or on the half-increment.
+The incremented digit is "0.05" so the half-increment is at .025 (below, this is shown at 11.225).
+
+```js
+const nf = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 2,
+  roundingIncrement: 5,
+  roundingMode: "halfCeil"
+});
+
+console.log(nf.format(11.21));  // > output: "$11.20"
+console.log(nf.format(11.22));  // > output: "$11.20"
+console.log(nf.format(11.224));  // > output: "$11.20"
+console.log(nf.format(11.225));  // > output: "$11.25"
+console.log(nf.format(11.23));  // > output: "$11.25"
+```
+
+If you need to change the number of digits then remember that `minimumFractionDigits` and `maximumFractionDigits` must both be set to the same value or a `RangeError` is thrown.
+
+`roundingIncrement` cannot be mixed with significant-digits rounding or any setting of `roundingPriority` other than `auto`.
+
 ## Specifications
 
 {{Specifications}}
