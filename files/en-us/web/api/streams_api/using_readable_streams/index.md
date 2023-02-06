@@ -359,3 +359,307 @@ We don't yet have an example that uses {{domxref("TransformStream")}}.
 That explains the basics of "default" readable streams.
 
 See [Using readable byte streams](/en-US/docs/Web/API/Streams_API/Using_readable_byte_streams) for information about how to use readable _byte_ streams: streams with an underlying byte source that can perform efficient zero-copy transfers to a consumer, bypassing the stream's internal queues.
+
+## scratchpad
+
+### Underlying push source with byte reader
+
+This live example shows how to create a readable byte stream with a _push_ underlying byte source, and read it using a byte reader.
+
+Unlike with a pull underlying byte source, data can arrive at any time.
+Therefore the underlying source must use `controller.byobRequest` to transfer incoming data if one exists, and otherwise enqueue the data into the stream's internal queues.
+Further, since the data can arrive at any time the monitoring behavior is set up in the `underlyingSource.start()` callback function.
+
+The example is highly influenced by a push byte source example in the stream specification.
+It uses a mocked "hypothetical socket" source that supplies data of arbitrary sizes.
+The reader is deliberately delayed at various points to allow the underlying source to use both transfer and enqueuing to send data to the stream.
+Backpressure support is not demonstrated.
+
+> **Note:** An underlying byte source can also be used with a default reader.
+> If automatic buffer allocation is enabled the controller will supply fixed-size buffers for zero-copy transfers when there is an outstanding request from a reader and the stream's internal queues are empty.
+> If automatic buffer allocation is not enabled then all data from the byte stream will always be enqueued.
+> This is similar to the behavior shown in the "pull: underlying byte source examples.
+
+#### Mocked underlying puch source
+
+The mocked underlying source has two important methods:
+
+- `dataRequest()` represents an outstanding request on the push source.
+  It returns a promise that is resolved when data is available.
+- `close()` closes the socket.
+
+The implementation is very simplistic.
+As shown below, `dataRequest()` creates a randomly sized buffer of random data on a timeout.
+The created data is read into a buffer then cleared in `readInto()`.
+
+```js
+class MockPushSource {
+  constructor() {
+    this.max_data = 90; // total amount of data to to stream from the push source
+    //this.max_per_read = 100; // max data per read
+    //this.min_per_read = 40; // min data per read
+    this.data_read = 0; // total data read so far (capped to maxdata)
+  }
+
+  // Method returning promise when this push source is readable.
+  dataRequest() {
+    // Object used to resolve promise
+    const resultobj = {};
+    resultobj["bytesRead"] = 8;
+
+    return new Promise((resolve/*, reject*/) => {
+      if (this.data_read >= this.max_data) { //out of data
+        resultobj["bytesRead"] = 0
+        resultobj["data"] = "";
+        resolve(resultobj);
+        return;
+      }
+
+      // Emulate slow read of data
+      setTimeout(() => {
+        const numberBytesReceived = 8;
+        this.data_read += numberBytesReceived;
+        resultobj["data"] = this.randomChars();
+        resolve(resultobj);
+      }, 500);
+    });
+  }
+
+
+  // Dummy close function
+  close() {
+    return;
+  }
+
+  // Return random character string
+  randomChars(length = 8) {
+    let string = "";
+    let choices = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+
+    for (let i = 0; i < length; i++) {
+      string += choices.charAt(Math.floor(Math.random() * choices.length));
+    }
+    return string;
+  }
+
+};
+```
+
+<!-- The following html and js sets up reporting. Hidden because it is not useful for readers -->
+
+```css hidden
+.input {
+  float: left;
+  width: 50%;
+}
+.output {
+  float: right;
+  width: 50%;
+  overflow-wrap: break-word;
+}
+button {
+  display: block;
+}
+```
+
+```html
+<button>Cancel stream</button>
+<div class="input">
+  <h2>Underlying source</h2>
+  <ul></ul>
+</div>
+<div class="output">
+  <h2>Consumer</h2>
+  <ul></ul>
+</div>
+```
+
+```js hidden
+// Store reference to lists, paragraph and button
+const list1 = document.querySelector('.input ul');
+const list2 = document.querySelector('.output ul');
+const button = document.querySelector('button');
+
+// Create empty string in which to store final result
+let result = "";
+
+// Function to log data from underlying source
+function logSource(result) {
+  const listItem = document.createElement('li');
+  listItem.textContent = result;
+  list1.appendChild(listItem);
+}
+
+// Function to log data from consumer
+function logConsumer(result) {
+  const listItem = document.createElement('li');
+  listItem.textContent = result;
+  list2.appendChild(listItem);
+}
+```
+
+#### Creating a readable socket push byte stream
+
+The following code shows how to define a readable socket "push" byte stream.
+
+The `underlyingSource` object definition is passed as the first parameter to the [`ReadableStream()` constructor](/en-US/docs/Web/API/ReadableStream/ReadableStream).
+To make this a readable "byte" stream, we specify `type: "bytes"` as a property of the object.
+This ensures that the stream is handed a {{domxref("ReadableByteStreamController")}} (instead of the default controller ({{domxref("ReadableStreamDefaultController")}}))
+
+Since data can arrive at the socket before the consumer is ready to handle it, everything about reading the underlying source is configured in the `start()` callback method (we don't wait on a pull to start handling data).
+The implementation opens the "socket" and calls `dataRequest()` to request data.
+When the returned promise resolves the code checks if `controller.byobRequest` exists (is not `null`), and if so calls `socket.readInto()` to copy data into the request and transfer it.
+If `byobRequest` does not exist there is no outstanding request from a consuming stream that can be satisfied as a zero-copy transfer.
+In this case, `controller.enqueue()` used to copy data to the stream internal queues.
+
+The `dataRequest()` request for more data is reposted until a request is returned with no data.
+A this point the controller is used to close the stream.
+
+```js
+const stream = makePushSourceStream()
+
+function makePushSourceStream() {
+  const pushSource = new MockPushSource();
+
+  return new ReadableStream({
+    start(controller) {
+    button.addEventListener('click', () => {
+      logSource('ReadableStream.close() called following click');
+      controller.close();
+      });
+    readRepeatedly().catch((e) => controller.error(e));
+      function readRepeatedly() {
+        return pushSource.dataRequest().then((result) => {
+          //logSource(`chunk length: ${result.data.length} bytes`);
+          if (result.data.length == 0) {
+             logSource(`No data from source: closing`);
+             controller.close();
+             return;
+          }
+
+          logSource(`enqueue() ${result.data} bytes`);
+          controller.enqueue(result.data);
+          // need to close when we run out data by calling: ;
+          //need to return when no more bytes to read. Also maybe log source
+          return readRepeatedly();
+        });
+      }
+    },
+
+    cancel() {
+      logSource(`cancel() called on underlying source`);
+      pushSource.close();
+
+    }
+  });
+}
+```
+
+Note that `readRepeatedly()` returns a promise, and we use this to catch any errors from setting up or handling the read operation.
+The errors are then passed to the controller as shown above (see `readRepeatedly().catch((e) => controller.error(e));`).
+
+A `cancel()` method is provided at the end to close the underlying source; the `pull()` callback is not needed, and is therefore not implemented.
+
+#### Consuming the push byte stream
+
+The following code creates a `ReadableStreamBYOBReader` for the socket byte stream and uses it read data into a buffer.
+Note `processText()` is called recursively to read more data until the buffer is filled.
+When the underlying source signals that it has no more data, the `reader.read()` will have `done` set to true, which in turn completes the read operation.
+
+This code is almost exactly the same as for the [Underlying pull source with byte reader](#underlying_pull_source_with_byte_reader) example above.
+The only difference is that the reader includes some code to slow down reading, so the log output can demonstrate that data will be enqueued if not read fast enough.
+
+```js
+/*
+const reader = stream.getReader();
+readStream(reader);
+
+function readStream(reader) {
+  let charsReceived = 0;
+  let result = '';
+
+  // read() returns a promise that resolves
+  // when a value has been received
+  reader.read().then(function processText({ done, value }) {
+    // Result objects contain two properties:
+    // done  - true if the stream has already given you all its data.
+    // value - some data. Always undefined when done is true.
+    if (done) {
+      console.log("Stream complete");
+      logConsumer(`readStream() complete. Total bytes: ${result}`);
+      //para.textContent = result;
+      return;
+    }
+
+    charsReceived += value.length;
+    const chunk = value;
+    //const listItem = document.createElement('li');
+    logConsumer( `Read ${charsReceived} characters so far. Current chunk = ${chunk}`);
+    //listItem.textContent = `Read ${charsReceived} characters so far. Current chunk = ${chunk}`;
+    //list2.appendChild(listItem);
+
+    result += chunk;
+
+    // Read some more, and call this function again
+    return reader.read().then(processText);
+  });
+}
+*/
+
+```
+
+```js
+//async version - info here: https://jakearchibald.com/2017/async-iterators-and-generators/#making-streams-iterate
+//const reader = stream.getReader(); //note, we just use our stream, as it is the iterable.
+// need ot add counter.
+// How do we catch error cases?
+// How do we manually cancel - i.e. we don't have reader - just call cancel on the stream or controller? Test
+// What happens if there is an error in the controller?
+let bytes = 0;
+logChunks(stream);
+async function logChunks(readableXX) {
+  for await (const chunk of readableXX) {
+    //console.log(chunk);
+    bytes+=chunk.length;
+    logConsumer( `Chunk: ${chunk}. Read ${bytes} characters.`);
+    //return; //by default cancels the stream and releases the lock
+  }
+}
+```
+
+#### Cancelling the stream using the reader
+
+We can use {{domxref("ReadableStreamBYOBReader.cancel()")}} to cancel the stream.
+For this example we call the method if a button is clicked with a reason "user choice" (other HTML and code for the button not shown).
+We also log when the cancel operation completes.
+
+```js
+button.addEventListener('click', () => {
+    // stream.cancel("user choice");
+    // logConsumer('ReadableStream.cancel() called');
+});
+```
+
+{{domxref("ReadableStreamBYOBReader.releaseLock()")}} can be used to release the reader without cancelling the stream.
+Note however that any outstanding read requests will immediately be rejected.
+A new reader can be acquired later on to read the remaining chunks.
+
+#### Monitoring for stream for close/error
+
+The {{domxref("ReadableStreamBYOBReader.closed")}} property returns a promise that will resolve when the stream is closed, and reject if there is an error.
+While no errors are expected in this case, the following code should log the completion case.
+
+```js
+/*
+reader.closed
+  .then(() => { logConsumer("ReadableStreamBYOBReader.closed: resolved")} )
+  .catch(() => { logConsumer("ReadableStreamBYOBReader.closed: rejected:")} );
+  */
+```
+
+#### Result
+
+The logging from the underlying push source (left) and consumer (right) are shown below.
+Not the period in the middle where data is enqueued rather than transferred as a zero-copy operation.
+
+{{EmbedLiveSample("Underlying push source with default reader","100%","500px")}}
