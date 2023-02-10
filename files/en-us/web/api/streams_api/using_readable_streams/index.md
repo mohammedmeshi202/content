@@ -42,9 +42,9 @@ As our [Simple stream pump](https://github.com/mdn/dom-examples/tree/main/stream
 
 ```js
 // Fetch the original image
-fetch('./tortoise.png')
+fetch("./tortoise.png")
   // Retrieve its body as ReadableStream
-  .then((response) => response.body)
+  .then((response) => response.body);
 ```
 
 This provides us with a {{domxref("ReadableStream")}} object.
@@ -55,7 +55,7 @@ Now we've got our streaming body, reading the stream requires attaching a reader
 
 ```js
 // Fetch the original image
-fetch('./tortoise.png')
+fetch("./tortoise.png")
   // Retrieve its body as ReadableStream
   .then((response) => response.body)
   .then((body) => {
@@ -70,7 +70,7 @@ Also note that the previous example can be reduced by one step, as `response.bod
 
 ```js
 // Fetch the original image
-fetch('./tortoise.png')
+fetch("./tortoise.png")
   // Retrieve its body as ReadableStream
   .then((response) => {
     const reader = response.body.getReader();
@@ -84,7 +84,7 @@ Now you've got your reader attached, you can read data chunks out of the stream 
 
 ```js
 // Fetch the original image
-fetch('./tortoise.png')
+fetch("./tortoise.png")
   // Retrieve its body as ReadableStream
   .then((response) => {
     const reader = response.body.getReader();
@@ -103,8 +103,8 @@ fetch('./tortoise.png')
             return pump();
           });
         }
-      }
-    })
+      },
+    });
   })
   // Create a new response out of the stream
   .then((stream) => new Response(stream))
@@ -112,14 +112,16 @@ fetch('./tortoise.png')
   .then((response) => response.blob())
   .then((blob) => URL.createObjectURL(blob))
   // Update image
-  .then((url) => console.log(image.src = url))
+  .then((url) => console.log((image.src = url)))
   .catch((err) => console.error(err));
 ```
 
 Let's look in detail at how `read()` is used. In the `pump()` function seen above we first invoke `read()`, which returns a promise containing a results object — this has the results of our read in it, in the form `{ done, value }`:
 
 ```js
-reader.read().then(({ done, value }) => { /* … */ });
+reader.read().then(({ done, value }) => {
+  /* … */
+});
 ```
 
 The results can be one of three different types:
@@ -167,22 +169,19 @@ It is easy to read from a stream when the browser provides it for you as in the 
 The generic syntax skeleton looks like this:
 
 ```js
-const stream = new ReadableStream({
-  start(controller) {
-
+const stream = new ReadableStream(
+  {
+    start(controller) {},
+    pull(controller) {},
+    cancel() {},
+    type,
+    autoAllocateChunkSize,
   },
-  pull(controller) {
-
-  },
-  cancel() {
-
-  },
-  type,
-  autoAllocateChunkSize,
-}, {
-  highWaterMark: 3,
-  size: () => 1,
-});
+  {
+    highWaterMark: 3,
+    size: () => 1,
+  }
+);
 ```
 
 The constructor takes two objects as parameters. The first object is required, and creates a model in JavaScript of the underlying source the data is being read from. The second object is optional, and allows you to specify a [custom queuing strategy](/en-US/docs/Web/API/Streams_API/Concepts#internal_queues_and_queuing_strategies) to use for your stream. You'll rarely have to do this, so we'll just concentrate on the first one for now.
@@ -199,7 +198,7 @@ Looking at our simple example code again, you can see that our `ReadableStream()
 
 ```js
 // Fetch the original image
-fetch('./tortoise.png')
+fetch("./tortoise.png")
   // Retrieve its body as ReadableStream
   .then((response) => {
     const reader = response.body.getReader();
@@ -218,8 +217,8 @@ fetch('./tortoise.png')
             return pump();
           });
         }
-      }
-    })
+      },
+    });
   });
 ```
 
@@ -240,7 +239,7 @@ readableStream
   .then((stream) => new Response(stream))
   .then((response) => response.blob())
   .then((blob) => URL.createObjectURL(blob))
-  .then((url) => console.log(image.src = url))
+  .then((url) => console.log((image.src = url)))
   .catch((err) => console.error(err));
 ```
 
@@ -258,15 +257,15 @@ const stream = new ReadableStream({
       // Add the string to the stream
       controller.enqueue(string);
       // show it on the screen
-      const listItem = document.createElement('li');
+      const listItem = document.createElement("li");
       listItem.textContent = string;
       list1.appendChild(listItem);
     }, 1000);
-    button.addEventListener('click', () => {
+    button.addEventListener("click", () => {
       clearInterval(interval);
       readStream();
       controller.close();
-    })
+    });
   },
   pull(controller) {
     // We don't really need a pull in this example
@@ -275,7 +274,7 @@ const stream = new ReadableStream({
     // This is called if the reader cancels,
     // so we should stop generating strings
     clearInterval(interval);
-  }
+  },
 });
 ```
 
@@ -285,7 +284,7 @@ In the `readStream()` function itself, we lock a reader to the stream using {{do
 function readStream() {
   const reader = stream.getReader();
   let charsReceived = 0;
-  let result = '';
+  let result = "";
 
   // read() returns a promise that resolves
   // when a value has been received
@@ -301,7 +300,7 @@ function readStream() {
 
     charsReceived += value.length;
     const chunk = value;
-    const listItem = document.createElement('li');
+    const listItem = document.createElement("li");
     listItem.textContent = `Read ${charsReceived} characters so far. Current chunk = ${chunk}`;
     list2.appendChild(listItem);
 
@@ -343,13 +342,13 @@ We do have a simple example called [Unpack Chunks of a PNG](https://github.com/m
 
 ```js
 // Fetch the original image
-fetch('png-logo.png')
+fetch("png-logo.png")
   // Retrieve its body as ReadableStream
   .then((response) => response.body)
   // Create a gray-scaled PNG stream out of the original
-  .then((rs) => logReadableStream('Fetch Response Stream', rs))
+  .then((rs) => logReadableStream("Fetch Response Stream", rs))
   .then((body) => body.pipeThrough(new PNGTransformStream()))
-  .then((rs) => logReadableStream('PNG Chunk Stream', rs))
+  .then((rs) => logReadableStream("PNG Chunk Stream", rs));
 ```
 
 We don't yet have an example that uses {{domxref("TransformStream")}}.
@@ -380,7 +379,7 @@ Backpressure support is not demonstrated.
 > If automatic buffer allocation is not enabled then all data from the byte stream will always be enqueued.
 > This is similar to the behavior shown in the "pull: underlying byte source examples.
 
-#### Mocked underlying puch source
+#### Mocked underlying push source
 
 The mocked underlying source has two important methods:
 
@@ -407,9 +406,10 @@ class MockPushSource {
     const resultobj = {};
     resultobj["bytesRead"] = 8;
 
-    return new Promise((resolve/*, reject*/) => {
-      if (this.data_read >= this.max_data) { //out of data
-        resultobj["bytesRead"] = 0
+    return new Promise((resolve /*, reject*/) => {
+      if (this.data_read >= this.max_data) {
+        //out of data
+        resultobj["bytesRead"] = 0;
         resultobj["data"] = "";
         resolve(resultobj);
         return;
@@ -425,7 +425,6 @@ class MockPushSource {
     });
   }
 
-
   // Dummy close function
   close() {
     return;
@@ -434,15 +433,15 @@ class MockPushSource {
   // Return random character string
   randomChars(length = 8) {
     let string = "";
-    let choices = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+    let choices =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
 
     for (let i = 0; i < length; i++) {
       string += choices.charAt(Math.floor(Math.random() * choices.length));
     }
     return string;
   }
-
-};
+}
 ```
 
 <!-- The following html and js sets up reporting. Hidden because it is not useful for readers -->
@@ -476,23 +475,23 @@ button {
 
 ```js hidden
 // Store reference to lists, paragraph and button
-const list1 = document.querySelector('.input ul');
-const list2 = document.querySelector('.output ul');
-const button = document.querySelector('button');
+const list1 = document.querySelector(".input ul");
+const list2 = document.querySelector(".output ul");
+const button = document.querySelector("button");
 
 // Create empty string in which to store final result
 let result = "";
 
 // Function to log data from underlying source
 function logSource(result) {
-  const listItem = document.createElement('li');
+  const listItem = document.createElement("li");
   listItem.textContent = result;
   list1.appendChild(listItem);
 }
 
 // Function to log data from consumer
 function logConsumer(result) {
-  const listItem = document.createElement('li');
+  const listItem = document.createElement("li");
   listItem.textContent = result;
   list2.appendChild(listItem);
 }
@@ -515,32 +514,41 @@ In this case, `controller.enqueue()` used to copy data to the stream internal qu
 The `dataRequest()` request for more data is reposted until a request is returned with no data.
 A this point the controller is used to close the stream.
 
+<!--
+Fastest way to abort might be to kill the source, but this has issues with the pipes thingy
+
+YOu could do this on your source by closing the stream. IN fetch you could simply abort the source.
+
+```
+  return new ReadableStream({
+    start(controller) {
+      button.addEventListener("click", () => {
+        logSource("ReadableStream.close() called following click");
+        controller.close();
+      });
+```
+-->
+
 ```js
-const stream = makePushSourceStream()
+const stream = makePushSourceStream();
 
 function makePushSourceStream() {
   const pushSource = new MockPushSource();
 
   return new ReadableStream({
     start(controller) {
-    button.addEventListener('click', () => {
-      logSource('ReadableStream.close() called following click');
-      controller.close();
-      });
-    readRepeatedly().catch((e) => controller.error(e));
+      readRepeatedly().catch((e) => controller.error(e));
       function readRepeatedly() {
         return pushSource.dataRequest().then((result) => {
           //logSource(`chunk length: ${result.data.length} bytes`);
           if (result.data.length == 0) {
-             logSource(`No data from source: closing`);
-             controller.close();
-             return;
+            logSource(`No data from source: closing`);
+            controller.close();
+            return;
           }
 
           logSource(`enqueue() ${result.data} bytes`);
           controller.enqueue(result.data);
-          // need to close when we run out data by calling: ;
-          //need to return when no more bytes to read. Also maybe log source
           return readRepeatedly();
         });
       }
@@ -549,8 +557,7 @@ function makePushSourceStream() {
     cancel() {
       logSource(`cancel() called on underlying source`);
       pushSource.close();
-
-    }
+    },
   });
 }
 ```
@@ -570,45 +577,6 @@ This code is almost exactly the same as for the [Underlying pull source with byt
 The only difference is that the reader includes some code to slow down reading, so the log output can demonstrate that data will be enqueued if not read fast enough.
 
 ```js
-/*
-const reader = stream.getReader();
-readStream(reader);
-
-function readStream(reader) {
-  let charsReceived = 0;
-  let result = '';
-
-  // read() returns a promise that resolves
-  // when a value has been received
-  reader.read().then(function processText({ done, value }) {
-    // Result objects contain two properties:
-    // done  - true if the stream has already given you all its data.
-    // value - some data. Always undefined when done is true.
-    if (done) {
-      console.log("Stream complete");
-      logConsumer(`readStream() complete. Total bytes: ${result}`);
-      //para.textContent = result;
-      return;
-    }
-
-    charsReceived += value.length;
-    const chunk = value;
-    //const listItem = document.createElement('li');
-    logConsumer( `Read ${charsReceived} characters so far. Current chunk = ${chunk}`);
-    //listItem.textContent = `Read ${charsReceived} characters so far. Current chunk = ${chunk}`;
-    //list2.appendChild(listItem);
-
-    result += chunk;
-
-    // Read some more, and call this function again
-    return reader.read().then(processText);
-  });
-}
-*/
-
-```
-
-```js
 //async version - info here: https://jakearchibald.com/2017/async-iterators-and-generators/#making-streams-iterate
 //const reader = stream.getReader(); //note, we just use our stream, as it is the iterable.
 // need ot add counter.
@@ -617,12 +585,24 @@ function readStream(reader) {
 // What happens if there is an error in the controller?
 let bytes = 0;
 logChunks(stream);
-async function logChunks(readableXX) {
-  for await (const chunk of readableXX) {
-    //console.log(chunk);
-    bytes+=chunk.length;
-    logConsumer( `Chunk: ${chunk}. Read ${bytes} characters.`);
-    //return; //by default cancels the stream and releases the lock
+
+const aborter = new AbortController();
+button.addEventListener("click", () => aborter.abort());
+logChunks(stream, { signal: aborter.signal });
+
+async function logChunks(readableXX, { signal }) {
+  try {
+    for await (const chunk of readableXX) {
+      if (signal.aborted) throw signal.reason;
+      bytes += chunk.length;
+      logConsumer(`Chunk: ${chunk}. Read ${bytes} characters.`);
+    }
+  } catch (e) {
+    if (e instanceof TypeError) {
+      logConsumer("TypeError: Browser may not support async iteration");
+    } else {
+      logConsumer(`Error in async iterator: ${e}.`);
+    }
   }
 }
 ```
@@ -634,9 +614,9 @@ For this example we call the method if a button is clicked with a reason "user c
 We also log when the cancel operation completes.
 
 ```js
-button.addEventListener('click', () => {
-    // stream.cancel("user choice");
-    // logConsumer('ReadableStream.cancel() called');
+button.addEventListener("click", () => {
+  // stream.cancel("user choice");
+  // logConsumer('ReadableStream.cancel() called');
 });
 ```
 
