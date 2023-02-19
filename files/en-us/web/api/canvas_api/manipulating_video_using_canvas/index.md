@@ -1,15 +1,25 @@
 ---
 title: Manipulating video using canvas
+
 slug: Web/API/Canvas_API/Manipulating_video_using_canvas
+
 page-type: guide
+
 tags:
   - API
+
   - Canvas
+
   - Chroma-Key
+
   - Editing
+
   - Guide
+
   - Manipulating
+
   - Video
+
   - effects
 ---
 
@@ -25,24 +35,35 @@ The HTML document used to render this content is shown below.
 
 ```html
 <!DOCTYPE html>
+
 <html lang="en-US">
   <head>
     <meta charset="UTF-8" />
+
     <title>Video test page</title>
+
     <style>
       body {
         background: black;
+
         color: #cccccc;
       }
+
       #c2 {
         background-image: url(media/foo.png);
+
         background-repeat: no-repeat;
       }
+
       div {
         float: left;
+
         border: 1px solid #444444;
+
         padding: 10px;
+
         margin: 10px;
+
         background: #3b3b3b;
       }
     </style>
@@ -56,10 +77,13 @@ The HTML document used to render this content is shown below.
         controls="true"
         crossorigin="anonymous" />
     </div>
+
     <div>
       <canvas id="c1" width="160" height="96"></canvas>
+
       <canvas id="c2" width="160" height="96"></canvas>
     </div>
+
     <script src="processor.js"></script>
   </body>
 </html>
@@ -68,6 +92,7 @@ The HTML document used to render this content is shown below.
 The key bits to take away from this are:
 
 1. This document establishes two [`canvas`](/en-US/docs/Web/HTML/Element/canvas) elements, with the IDs `c1` and `c2`. Canvas `c1` is used to display the current frame of the original video, while `c2` is used to display the video after performing the chroma-keying effect; `c2` is preloaded with the still image that will be used to replace the green background in the video.
+
 2. The JavaScript code is imported from a script named `processor.js`.
 
 ## The JavaScript code
@@ -83,21 +108,28 @@ const processor = {};
 
 processor.doLoad = function doLoad() {
   const video = document.getElementById("video");
+
   this.video = video;
 
   this.c1 = document.getElementById("c1");
+
   this.ctx1 = this.c1.getContext("2d");
 
   this.c2 = document.getElementById("c2");
+
   this.ctx2 = this.c2.getContext("2d");
 
   video.addEventListener(
     "play",
+
     () => {
       this.width = video.videoWidth / 2;
+
       this.height = video.videoHeight / 2;
+
       this.timerCallback();
     },
+
     false
   );
 };
@@ -116,7 +148,9 @@ processor.timerCallback = function timerCallback() {
   if (this.video.paused || this.video.ended) {
     return;
   }
+
   this.computeFrame();
+
   setTimeout(() => {
     this.timerCallback();
   }, 0);
@@ -136,17 +170,23 @@ The `computeFrame()` method, shown below, is responsible for actually fetching a
 ```js
 processor.computeFrame = function () {
   this.ctx1.drawImage(this.video, 0, 0, this.width, this.height);
+
   const frame = this.ctx1.getImageData(0, 0, this.width, this.height);
+
   const data = frame.data;
 
   for (let i = 0; i < data.length; i += 4) {
     const red = data[i + 0];
+
     const green = data[i + 1];
+
     const blue = data[i + 2];
+
     if (green > 100 && red > 100 && blue < 43) {
       data[i + 3] = 0;
     }
   }
+
   this.ctx2.putImageData(frame, 0, 0);
 };
 ```
@@ -176,5 +216,7 @@ This is done repeatedly as the video plays, so that frame after frame is process
 ## See also
 
 - [Web media technologies](/en-US/docs/Web/Media)
+
 - [Guide to media types and formats on the web](/en-US/docs/Web/Media/Formats)
+
 - [Learning area: Video and audio content](/en-US/docs/Learn/HTML/Multimedia_and_embedding/Video_and_audio_content)

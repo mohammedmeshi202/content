@@ -1,12 +1,19 @@
 ---
 title: Optimizing canvas
+
 slug: Web/API/Canvas_API/Tutorial/Optimizing_canvas
+
 page-type: guide
+
 tags:
   - Advanced
+
   - Canvas
+
   - Graphics
+
   - HTML
+
   - Tutorial
 ---
 
@@ -24,7 +31,9 @@ If you find yourself repeating some of the same drawing operations on each anima
 
 ```js
 myCanvas.offscreenCanvas = document.createElement("canvas");
+
 myCanvas.offscreenCanvas.width = myCanvas.width;
+
 myCanvas.offscreenCanvas.height = myCanvas.height;
 
 myCanvas.getContext("2d").drawImage(myCanvas.offScreenCanvas, 0, 0);
@@ -53,27 +62,35 @@ For example, let's say you have a game with a UI on top, the gameplay action in 
 ```html
 <div id="stage">
   <canvas id="ui-layer" width="480" height="320"></canvas>
+
   <canvas id="game-layer" width="480" height="320"></canvas>
+
   <canvas id="background-layer" width="480" height="320"></canvas>
 </div>
 
 <style>
   #stage {
     width: 480px;
+
     height: 320px;
+
     position: relative;
+
     border: 2px solid black;
   }
 
   canvas {
     position: absolute;
   }
+
   #ui-layer {
     z-index: 3;
   }
+
   #game-layer {
     z-index: 2;
   }
+
   #background-layer {
     z-index: 1;
   }
@@ -90,12 +107,15 @@ If you have a static background image, you can draw it onto a plain {{HTMLElemen
 
 ```js
 const scaleX = window.innerWidth / canvas.width;
+
 const scaleY = window.innerHeight / canvas.height;
 
 const scaleToFit = Math.min(scaleX, scaleY);
+
 const scaleToCover = Math.max(scaleX, scaleY);
 
 stage.style.transformOrigin = "0 0"; //scale from top left
+
 stage.style.transform = `scale(${scaleToFit})`;
 ```
 
@@ -113,30 +133,44 @@ You may find that canvas items appear blurry on higher-resolution displays. Whil
 
 ```js
 // Get the DPR and size of the canvas
+
 const dpr = window.devicePixelRatio;
+
 const rect = canvas.getBoundingClientRect();
 
 // Set the "actual" size of the canvas
+
 canvas.width = rect.width * dpr;
+
 canvas.height = rect.height * dpr;
 
 // Scale the context to ensure correct drawing operations
+
 ctx.scale(dpr, dpr);
 
 // Set the "drawn" size of the canvas
+
 canvas.style.width = `${rect.width}px`;
+
 canvas.style.height = `${rect.height}px`;
 ```
 
 ### More tips
 
 - Batch canvas calls together. For example, draw a polyline instead of multiple separate lines.
+
 - Avoid unnecessary canvas state changes.
+
 - Render screen differences only, not the whole new state.
+
 - Avoid the {{domxref("CanvasRenderingContext2D.shadowBlur", "shadowBlur")}} property whenever possible.
+
 - Avoid [text rendering](/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text) whenever possible.
+
 - Try different ways to clear the canvas ({{domxref("CanvasRenderingContext2D.clearRect", "clearRect()")}} vs. {{domxref("CanvasRenderingContext2D.fillRect", "fillRect()")}} vs. resizing the canvas).
+
 - With animations, use {{domxref("window.requestAnimationFrame()")}} instead of {{domxref("setInterval()")}} .
+
 - Be careful with heavy physics libraries.
 
 ## See also

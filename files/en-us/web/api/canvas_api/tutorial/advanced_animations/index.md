@@ -1,10 +1,15 @@
 ---
 title: Advanced animations
+
 slug: Web/API/Canvas_API/Tutorial/Advanced_animations
+
 page-type: guide
+
 tags:
   - Canvas
+
   - Graphics
+
   - Tutorial
 ---
 
@@ -24,18 +29,27 @@ As usual, we need a drawing context first. To draw the ball, we will create a `b
 
 ```js
 const canvas = document.getElementById("canvas");
+
 const ctx = canvas.getContext("2d");
 
 const ball = {
   x: 100,
+
   y: 100,
+
   radius: 25,
+
   color: "blue",
+
   draw() {
     ctx.beginPath();
+
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+
     ctx.closePath();
+
     ctx.fillStyle = this.color;
+
     ctx.fill();
   },
 };
@@ -51,30 +65,46 @@ Now that we have a ball, we are ready to add a basic animation like we have lear
 
 ```js
 const canvas = document.getElementById("canvas");
+
 const ctx = canvas.getContext("2d");
+
 let raf;
 
 const ball = {
   x: 100,
+
   y: 100,
+
   vx: 5,
+
   vy: 2,
+
   radius: 25,
+
   color: "blue",
+
   draw() {
     ctx.beginPath();
+
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+
     ctx.closePath();
+
     ctx.fillStyle = this.color;
+
     ctx.fill();
   },
 };
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   ball.draw();
+
   ball.x += ball.vx;
+
   ball.y += ball.vy;
+
   raf = window.requestAnimationFrame(draw);
 }
 
@@ -97,6 +127,7 @@ Without any boundary collision testing our ball runs out of the canvas quickly. 
 if (ball.y + ball.vy > canvas.height || ball.y + ball.vy < 0) {
   ball.vy = -ball.vy;
 }
+
 if (ball.x + ball.vx > canvas.width || ball.x + ball.vx < 0) {
   ball.vx = -ball.vx;
 }
@@ -116,34 +147,50 @@ Let's see how it looks in action so far.
 
 ```js
 const canvas = document.getElementById("canvas");
+
 const ctx = canvas.getContext("2d");
+
 let raf;
 
 const ball = {
   x: 100,
+
   y: 100,
+
   vx: 5,
+
   vy: 2,
+
   radius: 25,
+
   color: "blue",
+
   draw() {
     ctx.beginPath();
+
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+
     ctx.closePath();
+
     ctx.fillStyle = this.color;
+
     ctx.fill();
   },
 };
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   ball.draw();
+
   ball.x += ball.vx;
+
   ball.y += ball.vy;
 
   if (ball.y + ball.vy > canvas.height || ball.y + ball.vy < 0) {
     ball.vy = -ball.vy;
   }
+
   if (ball.x + ball.vx > canvas.width || ball.x + ball.vx < 0) {
     ball.vx = -ball.vx;
   }
@@ -174,6 +221,7 @@ To make the motion more real, you can play with the velocity like this, for exam
 
 ```js
 ball.vy *= 0.99;
+
 ball.vy += 0.25;
 ```
 
@@ -191,36 +239,54 @@ This slows down the vertical velocity each frame, so that the ball will just bou
 
 ```js
 const canvas = document.getElementById("canvas");
+
 const ctx = canvas.getContext("2d");
+
 let raf;
 
 const ball = {
   x: 100,
+
   y: 100,
+
   vx: 5,
+
   vy: 2,
+
   radius: 25,
+
   color: "blue",
+
   draw() {
     ctx.beginPath();
+
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+
     ctx.closePath();
+
     ctx.fillStyle = this.color;
+
     ctx.fill();
   },
 };
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   ball.draw();
+
   ball.x += ball.vx;
+
   ball.y += ball.vy;
+
   ball.vy *= 0.99;
+
   ball.vy += 0.25;
 
   if (ball.y + ball.vy > canvas.height || ball.y + ball.vy < 0) {
     ball.vy = -ball.vy;
   }
+
   if (ball.x + ball.vx > canvas.width || ball.x + ball.vx < 0) {
     ball.vx = -ball.vx;
   }
@@ -249,6 +315,7 @@ Until now we have made use of the {{domxref("CanvasRenderingContext2D.clearRect"
 
 ```js
 ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 ```
 
@@ -264,37 +331,56 @@ ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 ```js
 const canvas = document.getElementById("canvas");
+
 const ctx = canvas.getContext("2d");
+
 let raf;
 
 const ball = {
   x: 100,
+
   y: 100,
+
   vx: 5,
+
   vy: 2,
+
   radius: 25,
+
   color: "blue",
+
   draw() {
     ctx.beginPath();
+
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+
     ctx.closePath();
+
     ctx.fillStyle = this.color;
+
     ctx.fill();
   },
 };
 
 function draw() {
   ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   ball.draw();
+
   ball.x += ball.vx;
+
   ball.y += ball.vy;
+
   ball.vy *= 0.99;
+
   ball.vy += 0.25;
 
   if (ball.y + ball.vy > canvas.height || ball.y + ball.vy < 0) {
     ball.vy = -ball.vy;
   }
+
   if (ball.x + ball.vx > canvas.width || ball.x + ball.vx < 0) {
     ball.vx = -ball.vx;
   }
@@ -333,40 +419,58 @@ To get some control over the ball, we can make it follow our mouse using the [`m
 
 ```js
 const canvas = document.getElementById("canvas");
+
 const ctx = canvas.getContext("2d");
+
 let raf;
+
 let running = false;
 
 const ball = {
   x: 100,
+
   y: 100,
+
   vx: 5,
+
   vy: 1,
+
   radius: 25,
+
   color: "blue",
+
   draw() {
     ctx.beginPath();
+
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+
     ctx.closePath();
+
     ctx.fillStyle = this.color;
+
     ctx.fill();
   },
 };
 
 function clear() {
   ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function draw() {
   clear();
+
   ball.draw();
+
   ball.x += ball.vx;
+
   ball.y += ball.vy;
 
   if (ball.y + ball.vy > canvas.height || ball.y + ball.vy < 0) {
     ball.vy = -ball.vy;
   }
+
   if (ball.x + ball.vx > canvas.width || ball.x + ball.vx < 0) {
     ball.vx = -ball.vx;
   }
@@ -377,8 +481,11 @@ function draw() {
 canvas.addEventListener("mousemove", (e) => {
   if (!running) {
     clear();
+
     ball.x = e.clientX;
+
     ball.y = e.clientY;
+
     ball.draw();
   }
 });
@@ -386,12 +493,14 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("click", (e) => {
   if (!running) {
     raf = window.requestAnimationFrame(draw);
+
     running = true;
   }
 });
 
 canvas.addEventListener("mouseout", (e) => {
   window.cancelAnimationFrame(raf);
+
   running = false;
 });
 

@@ -1,12 +1,19 @@
 ---
 title: Using images
+
 slug: Web/API/Canvas_API/Tutorial/Using_images
+
 page-type: guide
+
 tags:
   - Advanced
+
   - Canvas
+
   - Graphics
+
   - HTML
+
   - Tutorial
 ---
 
@@ -17,6 +24,7 @@ Until now we have created our own [shapes](/en-US/docs/Web/API/Canvas_API/Tutori
 Importing images into a canvas is basically a two step process:
 
 1. Get a reference to an {{domxref("HTMLImageElement")}} object or to another canvas element as a source. It is also possible to use images by providing a URL.
+
 2. Draw the image on the canvas using the `drawImage()` function.
 
 Let's take a look at how to do this.
@@ -26,18 +34,31 @@ Let's take a look at how to do this.
 The canvas API is able to use any of the following data types as an image source:
 
 - {{domxref("HTMLImageElement")}}
+
   - : These are images created using the `Image()` constructor, as well as any {{HTMLElement("img")}} element.
+
 - {{domxref("SVGImageElement")}}
+
   - : These are images embedded using the {{SVGElement("image")}} element.
+
 - {{domxref("HTMLVideoElement")}}
+
   - : Using an HTML {{HTMLElement("video")}} element as your image source grabs the current frame from the video and uses it as an image.
+
 - {{domxref("HTMLCanvasElement")}}
+
   - : You can use another {{HTMLElement("canvas")}} element as your image source.
+
 - {{domxref("ImageBitmap")}}
+
   - : A bitmap image, eventually cropped. Such type are used to extract part of an image, a _sprite_, from a larger image
+
 - {{domxref("OffscreenCanvas")}}
+
   - : A special kind of `<canvas>` that is not displayed and is prepared without being displayed. Using such an image source allows to switch to it without the composition of the content to be visible to the user.
+
 - {{domxref("VideoFrame")}}
+
   - : An image representing one single frame of a video.
 
 There are several ways to get images for use on a canvas.
@@ -47,7 +68,9 @@ There are several ways to get images for use on a canvas.
 We can obtain a reference to images on the same page as the canvas by using one of:
 
 - The {{domxref("document.images")}} collection
+
 - The {{domxref("document.getElementsByTagName()")}} method
+
 - If you know the ID of the specific image you wish to use, you can use {{domxref("document.getElementById()")}} to retrieve that specific image
 
 ### Using images from other domains
@@ -66,6 +89,7 @@ Another option is to create new {{domxref("HTMLImageElement")}} objects in our s
 
 ```js
 const img = new Image(); // Create new img element
+
 img.src = "myImage.png"; // Set source path
 ```
 
@@ -75,13 +99,17 @@ If you try to call `drawImage()` before the image has finished loading, it won't
 
 ```js
 const img = new Image(); // Create new img element
+
 img.addEventListener(
   "load",
+
   () => {
     // execute drawImage statements here
   },
+
   false
 );
+
 img.src = "myImage.png"; // Set source path
 ```
 
@@ -93,6 +121,7 @@ Another possible way to include images is via the [data: URL](/en-US/docs/Web/HT
 
 ```js
 const img = new Image(); // Create new img element
+
 img.src =
   "data:image/gif;base64,R0lGODlhCwALAIAAAAAA3pn/ZiH5BAEAAAEALAAAAAALAAsAAAIUhA+hkcuO4lmNVindo7qyrIXiGBYAOw==";
 ```
@@ -108,6 +137,7 @@ You can also use frames from a video being presented by a {{HTMLElement("video")
 ```js
 function getMyVideo() {
   const canvas = document.getElementById("canvas");
+
   if (canvas.getContext) {
     const ctx = canvas.getContext("2d");
 
@@ -123,6 +153,7 @@ This returns the {{domxref("HTMLVideoElement")}} object for the video, which, as
 Once we have a reference to our source image object we can use the `drawImage()` method to render it to the canvas. As we will see later the `drawImage()` method is overloaded and has several variants. In its most basic form it looks like this:
 
 - {{domxref("CanvasRenderingContext2D.drawImage", "drawImage(image, x, y)")}}
+
   - : Draws the image specified by the `image` parameter at the coordinates (`x`, `y`).
 
 > **Note:** SVG images must specify a width and height in the root \<svg> element.
@@ -142,16 +173,25 @@ In the following example, we will use an external image as the backdrop for a sm
 ```js
 function draw() {
   const ctx = document.getElementById("canvas").getContext("2d");
+
   const img = new Image();
+
   img.onload = () => {
     ctx.drawImage(img, 0, 0);
+
     ctx.beginPath();
+
     ctx.moveTo(30, 96);
+
     ctx.lineTo(70, 66);
+
     ctx.lineTo(103, 76);
+
     ctx.lineTo(170, 15);
+
     ctx.stroke();
   };
+
   img.src = "backdrop.png";
 }
 ```
@@ -165,6 +205,7 @@ The resulting graph looks like this:
 The second variant of the `drawImage()` method adds two new parameters and lets us place scaled images on the canvas.
 
 - {{domxref("CanvasRenderingContext2D.drawImage", "drawImage(image, x, y, width, height)")}}
+
   - : This adds the `width` and `height` parameters, which indicate the size to which to scale the image when drawing it onto the canvas.
 
 ### Example: Tiling an image
@@ -184,7 +225,9 @@ In this example, we'll use an image as a wallpaper and repeat it several times o
 ```js
 function draw() {
   const ctx = document.getElementById("canvas").getContext("2d");
+
   const img = new Image();
+
   img.onload = () => {
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 3; j++) {
@@ -192,6 +235,7 @@ function draw() {
       }
     }
   };
+
   img.src = "rhino.jpg";
 }
 ```
@@ -205,6 +249,7 @@ The resulting canvas looks like this:
 The third and last variant of the `drawImage()` method has eight parameters in addition to the image source. It lets us cut out a section of the source image, then scale and draw it on our canvas.
 
 - {{domxref("CanvasRenderingContext2D.drawImage", "drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)")}}
+
   - : Given an `image`, this function takes the area of the source image specified by the rectangle whose top-left corner is (`sx`, `sy`) and whose width and height are `sWidth` and `sHeight` and draws it into the canvas, placing it on the canvas at (`dx`, `dy`) and scaling it to the size specified by `dWidth` and `dHeight`.
 
 To really understand what this does, it may help to look at this image:
@@ -223,8 +268,10 @@ In this example, we'll use the same rhino as in the previous example, but we'll 
 <html lang="en">
   <body onload="draw();">
     <canvas id="canvas" width="150" height="150"></canvas>
+
     <div style="display:none;">
       <img id="source" src="rhino.jpg" width="300" height="227" />
+
       <img id="frame" src="canvas_picture_frame.png" width="132" height="150" />
     </div>
   </body>
@@ -234,22 +281,33 @@ In this example, we'll use the same rhino as in the previous example, but we'll 
 ```js
 function draw() {
   const canvas = document.getElementById("canvas");
+
   const ctx = canvas.getContext("2d");
 
   // Draw slice
+
   ctx.drawImage(
     document.getElementById("source"),
+
     33,
+
     71,
+
     104,
+
     124,
+
     21,
+
     20,
+
     87,
+
     104
   );
 
   // Draw frame
+
   ctx.drawImage(document.getElementById("frame"), 0, 0);
 }
 ```
@@ -274,17 +332,25 @@ The code below should be self-explanatory. We loop through the {{domxref("docume
     <table>
       <tr>
         <td><img src="gallery_1.jpg" /></td>
+
         <td><img src="gallery_2.jpg" /></td>
+
         <td><img src="gallery_3.jpg" /></td>
+
         <td><img src="gallery_4.jpg" /></td>
       </tr>
+
       <tr>
         <td><img src="gallery_5.jpg" /></td>
+
         <td><img src="gallery_6.jpg" /></td>
+
         <td><img src="gallery_7.jpg" /></td>
+
         <td><img src="gallery_8.jpg" /></td>
       </tr>
     </table>
+
     <img id="frame" src="canvas_picture_frame.png" width="132" height="150" />
   </body>
 </html>
@@ -295,6 +361,7 @@ And here's some CSS to make things look nice:
 ```css
 body {
   background: 0 -100px repeat-x url(bg_gallery.png) #4f191a;
+
   margin: 10px;
 }
 
@@ -316,23 +383,31 @@ Tying it all together is the JavaScript to draw our framed images:
 ```js
 function draw() {
   // Loop through all images
+
   for (const image of document.images) {
     // Don't add a canvas for the frame image
+
     if (image.getAttribute("id") !== "frame") {
       // Create canvas element
+
       const canvas = document.createElement("canvas");
+
       canvas.setAttribute("width", 132);
+
       canvas.setAttribute("height", 150);
 
       // Insert before the image
+
       image.parentNode.insertBefore(canvas, image);
 
       ctx = canvas.getContext("2d");
 
       // Draw image to canvas
+
       ctx.drawImage(image, 15, 20);
 
       // Add frame
+
       ctx.drawImage(document.getElementById("frame"), 0, 0);
     }
   }
@@ -347,8 +422,11 @@ As mentioned previously, scaling images can result in fuzzy or blocky artifacts 
 
 ```js
 ctx.mozImageSmoothingEnabled = false;
+
 ctx.webkitImageSmoothingEnabled = false;
+
 ctx.msImageSmoothingEnabled = false;
+
 ctx.imageSmoothingEnabled = false;
 ```
 

@@ -1,12 +1,19 @@
 ---
 title: Basic usage of canvas
+
 slug: Web/API/Canvas_API/Tutorial/Basic_usage
+
 page-type: guide
+
 tags:
   - Canvas
+
   - Graphics
+
   - HTML
+
   - Intermediate
+
   - Tutorial
 ---
 
@@ -62,6 +69,7 @@ The canvas is initially blank. To display something, a script first needs to acc
 
 ```js
 const canvas = document.getElementById("tutorial");
+
 const ctx = canvas.getContext("2d");
 ```
 
@@ -76,6 +84,7 @@ const canvas = document.getElementById("tutorial");
 
 if (canvas.getContext) {
   const ctx = canvas.getContext("2d");
+
   // drawing code here
 } else {
   // canvas-unsupported code here
@@ -90,24 +99,30 @@ Here is a minimalistic template, which we'll be using as a starting point for la
 
 ```html
 <!DOCTYPE html>
+
 <html lang="en-US">
   <head>
     <meta charset="utf-8" />
+
     <title>Canvas tutorial</title>
+
     <script>
       function draw() {
         const canvas = document.getElementById("tutorial");
+
         if (canvas.getContext) {
           const ctx = canvas.getContext("2d");
         }
       }
     </script>
+
     <style>
       canvas {
         border: 1px solid black;
       }
     </style>
   </head>
+
   <body onload="draw();">
     <canvas id="tutorial" width="150" height="150"></canvas>
   </body>
@@ -126,25 +141,32 @@ To begin, let's take a look at a simple example that draws two intersecting rect
 
 ```html
 <!DOCTYPE html>
+
 <html lang="en-US">
   <head>
     <meta charset="UTF-8" />
+
     <title>Canvas experiment</title>
+
     <script type="application/javascript">
       function draw() {
         const canvas = document.getElementById("canvas");
+
         if (canvas.getContext) {
           const ctx = canvas.getContext("2d");
 
           ctx.fillStyle = "rgb(200, 0, 0)";
+
           ctx.fillRect(10, 10, 50, 50);
 
           ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
+
           ctx.fillRect(30, 30, 50, 50);
         }
       }
     </script>
   </head>
+
   <body onload="draw();">
     <canvas id="canvas" width="150" height="150"></canvas>
   </body>
