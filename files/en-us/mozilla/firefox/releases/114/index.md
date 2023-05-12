@@ -31,6 +31,10 @@ This article provides information about the changes in Firefox 114 that affect d
 
 #### Removals
 
+- The `cache` directive of the [`Clear-Site-Data`](/en-US/docs/Web/HTTP/Headers/Clear-Site-Data) response header has been permanently removed.
+  Note that the directive had been disabled by default since [Firefox 94](/en-US/docs/Mozilla/Firefox/Releases/94#http).
+  ([Firefox bug 1821651](https://bugzil.la/1821651)).
+
 ### Security
 
 #### Removals
